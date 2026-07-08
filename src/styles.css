@@ -1,0 +1,127 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f5f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 88px;
+  padding: 16px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid #d9dee8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.topbar p {
+  margin: 4px 0 0;
+  color: #536072;
+}
+
+button {
+  border: none;
+  background: #0b5cad;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #084a8d;
+}
+
+.canvas-wrap {
+  flex: 1;
+}
+
+.react-flow {
+  background: #ffffff;
+}
+
+.diagram-node {
+  min-width: 155px;
+  padding: 12px;
+  border: 1px solid #b9c1d0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(31, 45, 61, 0.13);
+}
+
+.diagram-node.customer {
+  border-color: #2f6fb3;
+}
+
+.diagram-node.internet {
+  border-color: #8e99a8;
+}
+
+.diagram-node.nice {
+  border-color: #438a52;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #14213d;
+}
+
+.node-subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #536072;
+  font-weight: 700;
+}
+
+.node-detail {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #394456;
+}
+
+.diagram-title,
+.legend {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #d5dbe7;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(31, 45, 61, 0.09);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.react-flow__edge-textbg {
+  fill: #ffffff;
+}
+
+.react-flow__edge-text {
+  font-weight: 700;
+  fill: #172033;
+}
