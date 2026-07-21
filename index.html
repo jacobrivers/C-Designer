@@ -1,107 +1,367 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NICE Connectivity Architecture Design Studio</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NICE Connectivity Architecture Studio</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #111827;
-            color: white;
-        }
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#111827;
+    color:white;
+}
 
-        .layout {
-            display: flex;
-            height: 100vh;
-        }
+.container{
+    display:flex;
+    height:100vh;
+}
 
-        .nav {
-            width: 260px;
-            background: #1f2937;
-            padding: 20px;
-            border-right: 1px solid #374151;
-        }
+.sidebar{
+    width:250px;
+    background:#1f2937;
+    padding:15px;
+    overflow:auto;
+}
 
-        .canvas {
-            flex: 1;
-            padding: 20px;
-        }
+.canvas{
+    flex:1;
+    position:relative;
+    background:#0f172a;
+    overflow:hidden;
+}
 
-        .properties {
-            width: 320px;
-            background: #1f2937;
-            padding: 20px;
-            border-left: 1px solid #374151;
-        }
+.props{
+    width:300px;
+    background:#1f2937;
+    padding:15px;
+}
 
-        h1 {
-            margin-top: 0;
-        }
+button{
+    width:100%;
+    margin-bottom:8px;
+    padding:10px;
+    cursor:pointer;
+}
 
-        .card {
-            background: #374151;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
+.node{
+    position:absolute;
+    width:140px;
+    height:60px;
+    background:#2563eb;
+    border-radius:8px;
+    text-align:center;
+    line-height:60px;
+    cursor:move;
+    user-select:none;
+}
 
-        .card:hover {
-            background: #4b5563;
-        }
-    </style>
+.node.selected{
+    outline:3px solid yellow;
+}
+
+input{
+    width:100%;
+    margin-top:5px;
+    margin-bottom:10px;
+    padding:8px;
+}
+
+svg{
+    position:absolute;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+}
+</style>
 </head>
+
 <body>
 
-<div class="layout">
+<div class="container">
 
-    <div class="nav">
-        <h2>Templates</h2>
+    <div class="sidebar">
+        <h3>Components</h3>
 
-        <div class="card">SIP</div>
-        <div class="card">IPSec</div>
-        <div class="card">MPLS</div>
-        <div class="card">Colo</div>
-        <div class="card">CPaaS</div>
-        <div class="card">SD-WAN</div>
-        <div class="card">Master Diagram</div>
-    </div>
-
-    <div class="canvas">
-        <h1>NICE Connectivity Architecture Design Studio</h1>
-
-        <p>
-            GitHub Pages successfully loaded.
-        </p>
-
-        <p>
-            Future React application will render here.
-        </p>
+        <button onclick="addNode('Carrier')">Carrier</button>
+        <button onclick="addNode('Firewall')">Firewall</button>
+        <button onclick="addNode('SBC')">SBC</button>
+        <button onclick="addNode('NICE POP')">NICE POP</button>
+        <button onclick="addNode('ISP')">ISP</button>
+        <button onclick="addNode('WebRTC')">WebRTC</button>
+        <button onclick="addNode('Agent')">Agent</button>
+        <button onclick="addNode('Contact Center')">Contact Center</button>
 
         <hr>
 
-        <h3>Voice POP Example</h3>
+        <button onclick="startConnect()">Connect Nodes</button>
 
-        <pre>
-Name: NA1
-FQDN: na1.example.com
-TLS: Enabled
-SBC: SBC-NA1
-        </pre>
+        <hr>
+
+        <button onclick="saveProject()">Save JSON</button>
+
+        <input type="file" onchange="loadProject(event)">
     </div>
 
-    <div class="properties">
-        <h2>Properties</h2>
+    <div class="canvas" id="canvas">
 
-        <p>
-            Select a component to edit settings.
-        </p>
+        <svg id="svg"></svg>
+
+    </div>
+
+    <div class="props">
+
+        <h3>Properties</h3>
+
+        <label>Name</label>
+        <input id="nodeName">
+
+        <button onclick="updateNode()">
+            Update
+        </button>
+
     </div>
 
 </div>
+
+<script>
+
+let nodes=[];
+let connections=[];
+
+let selectedNode=null;
+let connectMode=false;
+let connectSource=null;
+
+const canvas=document.getElementById("canvas");
+const svg=document.getElementById("svg");
+
+function addNode(type){
+
+    const id='node_'+Date.now();
+
+    const node={
+        id,
+        type,
+        x:100,
+        y:100
+    };
+
+    nodes.push(node);
+
+    renderNode(node);
+}
+
+function renderNode(node){
+
+    let div=document.createElement("div");
+
+    div.className="node";
+    div.id=node.id;
+
+    div.style.left=node.x+"px";
+    div.style.top=node.y+"px";
+
+    div.innerText=node.type;
+
+    canvas.appendChild(div);
+
+    div.onclick=(e)=>{
+
+        e.stopPropagation();
+
+        selectNode(node.id);
+
+        if(connectMode){
+
+            if(!connectSource){
+                connectSource=node.id;
+            }else{
+                connections.push({
+                    from:connectSource,
+                    to:node.id
+                });
+
+                drawConnections();
+
+                connectSource=null;
+                connectMode=false;
+            }
+        }
+    };
+
+    makeDraggable(div,node);
+}
+
+function selectNode(id){
+
+    document
+    .querySelectorAll('.node')
+    .forEach(n=>n.classList.remove('selected'));
+
+    selectedNode=
+        nodes.find(x=>x.id===id);
+
+    document
+    .getElementById(id)
+    .classList.add('selected');
+
+    document.getElementById("nodeName")
+        .value=selectedNode.type;
+}
+
+function updateNode(){
+
+    if(!selectedNode) return;
+
+    selectedNode.type=
+        document.getElementById("nodeName").value;
+
+    document.getElementById(selectedNode.id)
+        .innerText=selectedNode.type;
+}
+
+function startConnect(){
+
+    connectMode=true;
+    connectSource=null;
+
+    alert(
+        "Select source node then destination node"
+    );
+}
+
+function makeDraggable(el,node){
+
+    let offsetX,offsetY,isDown=false;
+
+    el.addEventListener('mousedown',e=>{
+
+        isDown=true;
+
+        offsetX=e.offsetX;
+        offsetY=e.offsetY;
+
+    });
+
+    document.addEventListener('mousemove',e=>{
+
+        if(!isDown) return;
+
+        node.x=e.pageX-offsetX-250;
+        node.y=e.pageY-offsetY;
+
+        el.style.left=node.x+'px';
+        el.style.top=node.y+'px';
+
+        drawConnections();
+    });
+
+    document.addEventListener('mouseup',()=>{
+        isDown=false;
+    });
+}
+
+function drawConnections(){
+
+    svg.innerHTML="";
+
+    connections.forEach(c=>{
+
+        const from=
+            document.getElementById(c.from);
+
+        const to=
+            document.getElementById(c.to);
+
+        if(!from || !to) return;
+
+        const x1=
+            parseInt(from.style.left)+70;
+
+        const y1=
+            parseInt(from.style.top)+30;
+
+        const x2=
+            parseInt(to.style.left)+70;
+
+        const y2=
+            parseInt(to.style.top)+30;
+
+        let line=
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "line"
+            );
+
+        line.setAttribute("x1",x1);
+        line.setAttribute("y1",y1);
+        line.setAttribute("x2",x2);
+        line.setAttribute("y2",y2);
+
+        line.setAttribute("stroke","white");
+        line.setAttribute("stroke-width","2");
+
+        svg.appendChild(line);
+    });
+}
+
+function saveProject(){
+
+    const data={
+        nodes,
+        connections
+    };
+
+    const blob=
+        new Blob(
+            [JSON.stringify(data,null,2)],
+            {type:"application/json"}
+        );
+
+    const link=
+        document.createElement("a");
+
+    link.href=
+        URL.createObjectURL(blob);
+
+    link.download=
+        "connectivity-project.json";
+
+    link.click();
+}
+
+function loadProject(e){
+
+    const file=e.target.files[0];
+
+    const reader=
+        new FileReader();
+
+    reader.onload=()=>{
+
+        document
+        .querySelectorAll('.node')
+        .forEach(n=>n.remove());
+
+        svg.innerHTML="";
+
+        const data=
+            JSON.parse(reader.result);
+
+        nodes=data.nodes || [];
+        connections=data.connections || [];
+
+        nodes.forEach(renderNode);
+
+        drawConnections();
+    };
+
+    reader.readAsText(file);
+}
+
+</script>
 
 </body>
 </html>
