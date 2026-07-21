@@ -1,0 +1,8 @@
+{
+  "name": "nice-architecture-studio",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
+}

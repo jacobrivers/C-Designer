@@ -1,0 +1,1 @@
+export default function App(){return <div className="h-screen flex bg-slate-900 text-white"><div className="w-64 p-4 border-r">Templates</div><div className="flex-1 p-4">Canvas</div><div className="w-80 p-4 border-l">Properties</div></div>}
