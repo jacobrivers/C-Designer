@@ -1,28 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import './index.css'
 
-function App() {
-  const [nodes, setNodes] = useState([])
-  const [connections, setConnections] = useState([])
-
-  useEffect(() => {
-    // Read config from URL hash (#config=...)
-    const hash = window.location.hash
+// Helper function to extract config immediately on load
+const getConfigFromHash = () => {
+  try {
+    const hash = window.location.hash;
     if (hash.startsWith('#config=')) {
-      try {
-        const base64Data = hash.replace('#config=', '')
-        const jsonString = atob(base64Data)
-        const config = JSON.parse(jsonString)
-
-        if (config.nodes) setNodes(config.nodes)
-        if (config.connections) setConnections(config.connections)
-        
-        console.log("Configuration successfully loaded into C-Designer:", config)
-      } catch (error) {
-        console.error("Failed to decode configuration from URL hash:", error)
-      }
+      const base64Data = hash.replace('#config=', '');
+      const jsonString = atob(base64Data);
+      return JSON.parse(jsonString);
     }
-  }, [])
+  } catch (error) {
+    console.error("Failed to decode URL config hash:", error);
+  }
+  return { nodes: [], connections: [] };
+};
+
+function App() {
+  // Initialize state directly from the URL hash payload
+  const initialConfig = getConfigFromHash();
+  const [nodes, setNodes] = useState(initialConfig.nodes);
+  const [connections, setConnections] = useState(initialConfig.connections);
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
