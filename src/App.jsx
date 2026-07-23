@@ -1,34 +1,34 @@
 import { useState, useEffect } from 'react'
 import './index.css'
 
-const getConfigFromHash = () => {
+const parseUrlHash = () => {
+  const hash = window.location.hash;
+  let config = { nodes: [], connections: [] };
+  let isViewMode = false;
+
   try {
-    const hash = window.location.hash;
     if (hash.includes('config=')) {
       const configPart = hash.split('config=')[1].split('&')[0];
       const jsonString = atob(configPart);
-      return JSON.parse(jsonString);
+      config = JSON.parse(jsonString);
+    }
+    if (hash.includes('mode=view')) {
+      isViewMode = true;
     }
   } catch (error) {
-    console.error("Failed to decode URL config hash:", error);
+    console.error("Failed to parse URL hash parameters:", error);
   }
-  return { nodes: [], connections: [] };
-};
 
-const getParamFromHash = (param) => {
-  const hash = window.location.hash;
-  const match = hash.match(new RegExp(param + '=([^&]+)'));
-  return match ? match[1] : null;
+  return { config, isViewMode };
 };
 
 function App() {
-  const initialConfig = getConfigFromHash();
-  const [nodes, setNodes] = useState(initialConfig.nodes || []);
-  const [connections, setConnections] = useState(initialConfig.connections || []);
+  const { config, isViewMode } = parseUrlHash();
+  
+  const [nodes, setNodes] = useState(config.nodes || []);
+  const [connections, setConnections] = useState(config.connections || []);
 
-  // Check if mode=view is passed in the URL hash to collapse sidebars by default
-  const isViewMode = getParamFromHash('mode') === 'view';
-
+  // If view mode is active, default sidebars to closed (width 0px)
   const [leftOpen, setLeftOpen] = useState(!isViewMode);
   const [rightOpen, setRightOpen] = useState(!isViewMode);
 
@@ -47,8 +47,7 @@ function App() {
       }}>
         <div style={{ width: '260px', padding: '20px', boxSizing: 'border-box' }}>
           <h3>Components</h3>
-          <p style={{ fontSize: '12px', color: '#8b949e' }}>Nodes: {nodes.length}</p>
-          {/* Add your component buttons/list here */}
+          <p style={{ fontSize: '12px', color: '#8b949e' }}>Total Nodes: {nodes.length}</p>
         </div>
       </div>
 
@@ -77,8 +76,14 @@ function App() {
           <h3 style={{ margin: 0 }}>C-Designer Canvas</h3>
         </div>
         <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
-          {/* Render your canvas or nodes layout here */}
-          <p style={{ color: '#8b949e' }}>Canvas workspace loaded with {nodes.length} nodes.</p>
+          <h4>Loaded Configuration Nodes:</h4>
+          <ul>
+            {nodes.map(node => (
+              <li key={node.id}>
+                <strong>{node.type}</strong> (ID: {node.id}) — X: {node.x}, Y: {node.y}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
@@ -113,7 +118,7 @@ function App() {
       }}>
         <div style={{ width: '300px', padding: '20px', boxSizing: 'border-box' }}>
           <h3>Properties</h3>
-          <p style={{ fontSize: '12px', color: '#8b949e' }}>Select an item to edit properties.</p>
+          <p style={{ fontSize: '12px', color: '#8b949e' }}>Select an item to view properties.</p>
         </div>
       </div>
 
