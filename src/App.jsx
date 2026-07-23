@@ -28,7 +28,7 @@ function App() {
   const [nodes, setNodes] = useState(config.nodes || []);
   const [connections, setConnections] = useState(config.connections || []);
 
-  // If view mode is active, default sidebars to closed (width 0px)
+  // Force sidebars closed by default if view mode is on
   const [leftOpen, setLeftOpen] = useState(!isViewMode);
   const [rightOpen, setRightOpen] = useState(!isViewMode);
 
@@ -47,7 +47,6 @@ function App() {
       }}>
         <div style={{ width: '260px', padding: '20px', boxSizing: 'border-box' }}>
           <h3>Components</h3>
-          <p style={{ fontSize: '12px', color: '#8b949e' }}>Total Nodes: {nodes.length}</p>
         </div>
       </div>
 
@@ -71,19 +70,36 @@ function App() {
       </button>
 
       {/* Center Canvas Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: 'hidden' }}>
         <div style={{ padding: '15px 60px', borderBottom: '1px solid #30363d', background: '#161b22', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>C-Designer Canvas</h3>
         </div>
-        <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
-          <h4>Loaded Configuration Nodes:</h4>
-          <ul>
-            {nodes.map(node => (
-              <li key={node.id}>
-                <strong>{node.type}</strong> (ID: {node.id}) — X: {node.x}, Y: {node.y}
-              </li>
-            ))}
-          </ul>
+        
+        {/* Visual Canvas workspace rendering nodes by coordinates */}
+        <div style={{ flex: 1, position: 'relative', background: '#0b0f15', overflow: 'auto' }}>
+          {nodes.map(node => (
+            <div 
+              key={node.id}
+              style={{
+                position: 'absolute',
+                left: `${node.x}px`,
+                top: `${node.y}px`,
+                padding: '12px 20px',
+                background: '#1f6feb',
+                color: '#fff',
+                borderRadius: '6px',
+                border: '1px solid #388bfd',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                textAlign: 'center',
+                minWidth: '90px'
+              }}
+            >
+              {node.type}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -118,7 +134,6 @@ function App() {
       }}>
         <div style={{ width: '300px', padding: '20px', boxSizing: 'border-box' }}>
           <h3>Properties</h3>
-          <p style={{ fontSize: '12px', color: '#8b949e' }}>Select an item to view properties.</p>
         </div>
       </div>
 
